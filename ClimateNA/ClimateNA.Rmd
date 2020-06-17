@@ -15,11 +15,292 @@ output:
 ```{r}
 library(ggplot2)
 library(dplyr)
+library(purrr)
 ```
 
 # Load Data
 
 ```{r}
+monthly <- read.csv("data/output_1901-2018M.csv")
+season <- read.csv("data/output_1901-2018S.csv")
+annual <- read.csv("data/output_1901-2018Y.csv")
+all <- read.csv("data/output_1901-2018MSY.csv")
+```
+
+# Prepare Data
+
+## Monthly
+
+Primary monthly variables:
+
+- Tave01 – Tave12 	January - December mean temperatures (°C)
+- TMX01 – TMX12 	January - December maximum mean temperatures (°C)
+- TMN01 – TMN12 	January - December minimum mean temperatures (°C)
+- PPT01 – PPT12  	January - December precipitation (mm)
+- RAD01 – RAD12  	January - December solar radiation (MJ m‐2 d‐1)
+
+Derived monthly variables:
+- DD_0_01 – DD_0_12   January - December degree-days below 0°C
+- DD5_01 – DD5_12     January - December degree-days above 5°C
+- DD_18_01 – DD_18_12  	January - December degree-days below 18°C
+- DD18_01 – DD18_12    	January - December degree-days above 18°C
+- NFFD01 – NFFD12 	    	January - December number of frost-free days
+- PAS01 – PAS12 		January – December precipitation as snow (mm)
+- Eref01 – Eref12 	January – December Hargreaves reference evaporation (mm)
+- CMD01 – CMD12 	January – December Hargreaves climatic moisture deficit (mm)
+- RH01 – RH12		January – December relative humidity (%)
+
+
+```{r}
+str(monthly)
+```
+
+
+```{r}
+monthly_Tmax <- monthly %>% 
+  select(Year, starts_with("Tmax")) %>%
+  gather(key = "Month", value = "Tmax", 2:13)
+monthly_Tmax$Month <- as.factor(monthly_Tmax$Month)
+levels(monthly_Tmax$Month) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+
+monthly_Tmin <- monthly %>% 
+  select(Year, starts_with("Tmin")) %>%
+  gather(key = "Month", value = "Tmin", 2:13)
+monthly_Tmin$Month <- as.factor(monthly_Tmin$Month)
+levels(monthly_Tmin$Month) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+
+monthly_Tave <- monthly %>% 
+  select(Year, starts_with("Tave")) %>%
+  gather(key = "Month", value = "Tave", 2:13)
+monthly_Tave$Month <- as.factor(monthly_Tave$Month)
+levels(monthly_Tave$Month) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+
+monthly_PPT <- monthly %>% 
+  select(Year, starts_with("PPT")) %>%
+  gather(key = "Month", value = "PPT", 2:13)
+monthly_PPT$Month <- as.factor(monthly_PPT$Month)
+levels(monthly_PPT$Month) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+
+monthly_Rad <- monthly %>% 
+  select(Year, starts_with("Rad")) %>%
+  gather(key = "Month", value = "Rad", 2:13)
+monthly_Rad$Month <- as.factor(monthly_Rad$Month)
+levels(monthly_Rad$Month) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+
+monthly_Eref <- monthly %>% 
+  select(Year, starts_with("Eref")) %>%
+  gather(key = "Month", value = "Eref", 2:13)
+monthly_Eref$Month <- as.factor(monthly_Eref$Month)
+levels(monthly_Eref$Month) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+
+monthly_CMD <- monthly %>% 
+  select(Year, starts_with("CMD")) %>%
+  gather(key = "Month", value = "CMD", 2:13)
+monthly_CMD$Month <- as.factor(monthly_CMD$Month)
+levels(monthly_CMD$Month) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+
+monthly_RH <- monthly %>% 
+  select(Year, starts_with("RH")) %>%
+  gather(key = "Month", value = "RH", 2:13)
+monthly_RH$Month <- as.factor(monthly_RH$Month)
+levels(monthly_RH$Month) <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12")
+```
+
+
+```{r}
+monthly_tidy <- list(monthly_Tmax, monthly_Tmin, monthly_Tave, monthly_PPT, monthly_Rad, monthly_Eref, monthly_CMD, monthly_RH) %>% reduce(full_join)
+
+str(monthly_tidy)
+```
+
+## Seasonal
+
+Seasonal variables:
+
+- Winter (_wt): Dec (prev. yr for an individual year) - Feb for annual, Jan, Feb, Dec for normals
+- Spring (_sp): March, April and May
+- Summer (_sm): June, July and August
+- Autumn (_at): September, October and November 
+
+Directly calculated seasonal variables:
+
+-  Tave_wt	winter mean temperature (°C)
+-  Tmax_wt	winter mean maximum temperature (°C)
+-  Tmin_wt	winter mean minimum temperature (°C)
+-  PPT_wt	winter precipitation (mm)
+-  RAD_wt	winter solar radiation (MJ m‐2 d‐1)
+
+Derived seasonal variables:
+- DD_0_wt	winter degree-days below 0°C
+- DD5_wt	winter degree-days below 5°C
+- DD_18_wt	winter degree-days below 18°C
+- DD18_wt	winter degree-days below 18°C
+- NFFD_wt 	winter number of frost-free days
+- PAS_wt 	winter precipitation as snow (mm)
+- Eref_wt 	winter Hargreaves reference evaporation (mm)
+- CMD_wt 	winter Hargreaves climatic moisture deficit (mm)
+- RH_wt		winter relative humidity (%)
+
+
+```{r}
+str(season)
+```
+
+```{r}
+season_Tmax <- season %>% 
+  select(Year, starts_with("Tmax")) %>%
+  gather(key = "Season", value = "Tmax", 2:5)
+season_Tmax$Season <- as.factor(season_Tmax$Season)
+levels(season_Tmax$Season) <- c("Winter", "Spring", "Summer", "Autumn")
+
+season_Tmin <- season %>% 
+  select(Year, starts_with("Tmin")) %>%
+  gather(key = "Season", value = "Tmin", 2:5)
+season_Tmin$Season <- as.factor(season_Tmin$Season)
+levels(season_Tmin$Season) <- c("Winter", "Spring", "Summer", "Autumn")
+
+season_Tave <- season %>% 
+  select(Year, starts_with("Tave")) %>%
+  gather(key = "Season", value = "Tave", 2:5)
+season_Tave$Season <- as.factor(season_Tave$Season)
+levels(season_Tave$Season) <- c("Winter", "Spring", "Summer", "Autumn")
+
+season_PPT <- season %>% 
+  select(Year, starts_with("PPT")) %>%
+  gather(key = "Season", value = "PPT", 2:5)
+season_PPT$Season <- as.factor(season_PPT$Season)
+levels(season_PPT$Season) <- c("Winter", "Spring", "Summer", "Autumn")
+
+season_Rad <- season %>% 
+  select(Year, starts_with("Rad")) %>%
+  gather(key = "Season", value = "Rad", 2:5)
+season_Rad$Season <- as.factor(season_Rad$Season)
+levels(season_Rad$Season) <- c("Winter", "Spring", "Summer", "Autumn")
+
+season_Eref <- season %>% 
+  select(Year, starts_with("Eref")) %>%
+  gather(key = "Season", value = "Eref", 2:5)
+season_Eref$Season <- as.factor(season_Eref$Season)
+levels(season_Eref$Season) <- c("Winter", "Spring", "Summer", "Autumn")
+
+season_CMD <- season %>% 
+  select(Year, starts_with("CMD")) %>%
+  gather(key = "Season", value = "CMD", 2:5)
+season_CMD$Season <- as.factor(season_CMD$Season)
+levels(season_CMD$Season) <- c("Winter", "Spring", "Summer", "Autumn")
+
+season_RH <- season %>% 
+  select(Year, starts_with("RH")) %>%
+  gather(key = "Season", value = "RH", 2:5)
+season_RH$Season <- as.factor(season_RH$Season)
+levels(season_RH$Season) <- c("Winter", "Spring", "Summer", "Autumn")
+```
+
+```{r}
+season_tidy <-list(season_Tmax, season_Tmin, season_Tave, season_PPT, season_Rad, season_Eref, season_CMD, season_RH) %>% reduce(full_join)
+
+str(season_tidy)
+```
+
+
+
+
+
+## Annual
+
+Directly calculated annual variables:
+
+- MAT	 	mean annual temperature (°C),
+- MWMT 	mean warmest month temperature (°C),
+- MCMT  	mean coldest month temperature (°C),
+- TD 		temperature difference between MWMT and MCMT, or continentality (°C),
+- MAP 		mean annual precipitation (mm),
+- MSP 		May to September precipitation (mm),
+- AHM  	annual heat-moisture index (MAT+10)/(MAP/1000))
+- SHM 	 	summer heat-moisture index ((MWMT)/(MSP/1000))
+	
+Derived annual variables:
+
+- DD<0		degree-days below 0°C, chilling degree-days
+- DD>5		degree-days above 5°C, growing degree-days
+- DD<18	degree-days below 18°C, heating degree-days
+- DD>18	degree-days above 18°C, cooling degree-days
+- NFFD		the number of frost-free days
+- FFP		frost-free period
+- bFFP		the day of the year on which FFP begins
+- eFFP		the day of the year on which FFP ends
+- PAS	precipitation as snow (mm). For individual years, it covers the period between August in the previous year and July in the current year.
+- EMT		extreme minimum temperature over 30 years
+- EXT		extreme maximum temperature over 30 years
+- Eref		Hargreaves reference evaporation (mm)
+- CMD		Hargreaves climatic moisture deficit (mm)
+- MAR		mean annual solar radiation (MJ m‐2 d‐1)
+- RH		mean annual relative humidity (%)
+
+```{r}
+str(annual)
+```
+
+
+# Visualize Data
+
+```{r}
+str(season_tidy)
+```
+
+
+## Season
+
+```{r}
+ggplot (data = season_tidy, aes(x=Year, y = Tave)) +
+  geom_line() +
+  facet_grid(~Season)
+```
+
+
+
+
+
+
+## Annual
+
+```{r}
+ ggplot() +
+  # London Data
+  geom_line(data=london_temp_annual, aes(x = year, y = mean_temp), colour = "lightseagreen", linetype = "dashed", alpha = 0.6) +
+  # Pinery Data
+  geom_line(data=pinery_temp_annual, aes(x = year, y = mean_temp), colour="lightsalmon4", linetype= "dashed", alpha = 0.6) +
+  # ClimateNA Data
+  geom_line(data=annual, aes(x=Year, y=MAT), colour = "darkgreen") +
+  #Aesthetics
+  xlab("Year") +
+  ylab("Mean Annual Temperature (°C)") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+  #ggtitle("Average Annual Temperature in \n Southwestern Ontario from 1883 to 2017") + 
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+
+```
+
+This is comparing mean precipitation to total
+
+```{r}
+ggplot() +
+  # London Data
+  geom_line(data=london_precip_annual, aes(x = year, y = total_precip), colour = "lightseagreen", linetype = "dashed", alpha = 0.6) +
+  # Pinery Data
+  geom_line(data=pinery_precip_annual, aes(x = year, y = total_precip, group = 1),  colour="lightsalmon4", linetype = "dashed", alpha = 0.6) +
+ # ClimateNA Data
+  geom_line(data=annual, aes(x=Year, y=MAP), colour = "darkgreen") +
+  #Aesthetics
+  xlab("Year") +
+  ylab("Total Annual Precipitation (mm)") +
+  scale_x_continuous(breaks=seq(1880,2020,20)) +
+  #ggtitle("Annual Precipitation in Southwestern Ontario \nfrom 1883 to 2017") + 
+  scale_colour_manual(name="Location", breaks = c("London", "Pinery"),
+                      values = c("blue","darkgreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
 
 ```
 

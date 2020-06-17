@@ -1,8 +1,13 @@
 ---
-title: "Climate"
-author: "Jen Baron"
+title: "Instrumental Climate Data"
+author: "Jen Baron, j.baron@alumni.ubc.ca, UBC Tree Ring Lab"
 date: 'August 8, 2019'
-output: html_document
+output:
+  html_document:
+    theme: flatly
+    number_sections: yes
+    toc: yes
+    toc_float: yes
 ---
 
 
@@ -662,19 +667,26 @@ seasonal_anomaly_plot <- grid.arrange(w_anomaly, sp_anomaly, su_anomaly, fa_anom
 ```
 
 
+### Verify Record
+
+Calculate correlation with London Record
+
+
+# Save Outputs
+
 ```{r}
 #write.csv(season_temp, file = "outputs/season_temperature.csv")
 #write.csv(season_precip, file = "outputs/season_precipitation.csv")
 #write.csv(pinery_temp_annual, file = "outputs/annual_temp.csv")
 ```
 
-### Verify Record
 
-Calculate correlation with London Record
-
-
-
-
+# Reproducibility
+```{r}
+Sys.time()
+git2r::repository()
+sessionInfo(
+```
 
 
 
