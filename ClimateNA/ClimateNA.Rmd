@@ -1,0 +1,38 @@
+---
+title: "ClimateNA"
+author: "Jen Baron, j.baron@alumni.ubc.ca, UBC Tree Ring Lab"
+date: 'June 17, 2020'
+output:
+  html_document:
+    theme: flatly
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+---
+
+# Packages
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+
+# Load Data
+
+```{r}
+
+```
+
+
+# Save Outputs
+
+```{r}
+
+```
+
+
+# Reproducibility
+```{r}
+Sys.time()
+git2r::repository()
+sessionInfo(

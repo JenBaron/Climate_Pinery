@@ -1,0 +1,683 @@
+---
+title: "Climate"
+author: "Jen Baron"
+date: 'August 8, 2019'
+output: html_document
+---
+
+
+- Seasonality
+- Update Pinery Climate (96 - present; Thedford & our data)
+- Growing season T (May - Sept)
+- Vapour pressure defecit (growing season T & previous Aug-Oct, Williams et al.)
+
+
+#### Packages
+```{r}
+library(ggplot2) #for plotting
+library(tidyr)
+library(dplyr)
+library(GGally)
+library(gridExtra)
+```
+
+
+#### Read in Data
+
+The Pinery dataset was compiled in excel from monthly mean temperature and total precipitation data using open access Environment Canada records for stations within 30km of the Pinery with at least 10 consecutive years of data (http://climate.weather.gc.ca/historical_data/search_historic_data_e.html). 
+
+The London datasets are homogenized data from Environment Canada that were converted to tidy format in excel. 
+
+```{r}
+pinery <- read.csv("data/pinery_climate.csv")
+pinery$station <- as.factor(pinery$station) #Make a factor 
+str(pinery)
+london_precip <- read.csv("data/london_precip.csv")
+london_temp <- read.csv("data/london_temp.csv")
+london_precip$month <- as.factor(london_precip$month) #Make a factor 
+london_temp$month <- as.factor(london_temp$month) #Make a factor 
+```
+
+
+### Clean Up Data
+
+Here I go through each station for the temp and precip data, removing years where all 12 months aren't present so that I can later calculate the mean values for each year. I did this manually a while ago and there is probably a more efficient way to do it, however it works and it's already done so I left it as is. 
+```{r}
+#Arkona
+Arkona <- pinery %>% filter(station == "Arkona") #Filter out station of interest
+
+Arkona_T <- Arkona %>% select(-total_precip) %>% filter(!is.na(Arkona$mean_temp)==T) #remove precipitation data and "NA"
+table(Arkona_T$year) #Generate table after cleaning
+Arkona_T2 <- Arkona_T %>% filter(year != 1882 & year != 1883 & 
+                                   year != 1884 & year != 1893 & year != 1900 & year != 1902 & year != 1915) #remove years with < 12 months
+table(Arkona_T2$year) #Generate table after cleaning
+
+Arkona_P <- Arkona %>% select(-mean_temp) %>% filter(!is.na(Arkona$total_precip)==T) #remove temperature data and "NA"
+#table(Arkona_P$year) #show how many observations in each year
+Arkona_P2 <- Arkona_P %>% filter(year != 1882 & year != 1893 & year != 1902 & year != 1915)
+#table(Arkona_P2$year) #Generate table after cleaning
+
+#Centralia A
+CentraliaA <- pinery %>% filter(station == "Centralia A")
+
+CentraliaA_T <- CentraliaA %>% select(-total_precip) %>% filter(!is.na(CentraliaA$mean_temp)==T) #remove "NA"
+#table(CentraliaA_T$year)  
+CentraliaA_T2 <- CentraliaA_T %>% filter(year != 1945 & year != 1946 & year != 1947 & year != 1966)
+#table(CentraliaA_T2$year)  
+
+CentraliaA_P <- CentraliaA %>% select(-mean_temp) %>% filter(!is.na(CentraliaA$total_precip)==T) #remove "NA"
+#table(CentraliaA_P$year)  
+CentraliaA_P2 <- CentraliaA_P %>% filter(year != 1946 & year != 1947 & year != 1966)
+#table(CentraliaA_P2$year)  
+
+#Exeter
+Exeter <- pinery %>% filter(station == "Exeter")
+
+Exeter_T <- Exeter %>% select(-total_precip) %>% filter(!is.na(Exeter$mean_temp)==T) #remove "NA"
+#table(Exeter_T$year)  
+Exeter_T2 <- Exeter_T %>% filter(year != 1967 & year != 1976 & year != 1985)
+#table(Exeter_T2$year)  
+
+Exeter_P <- Exeter %>% select(-mean_temp) %>% filter(!is.na(Exeter$total_precip)==T) #remove "NA"
+#table(Exeter_P$year)  
+Exeter_P2 <- Exeter_P %>% filter(year != 1961 & year != 1962 & year != 1964 & year != 1976 & year != 1985)
+#table(Exeter_P2$year) 
+
+#Forest
+Forest <- pinery %>% filter(station == "Forest")
+
+Forest_T <- Forest %>% select(-total_precip) %>% filter(!is.na(Forest$mean_temp)==T) #remove "NA"
+#table(Forest_T$year)  
+Forest_T2 <- Forest_T %>% filter(year != 1924 & year != 1940 & year != 1962 & year != 1963)
+#table(Forest_T2$year) 
+
+Forest_P <- Forest %>% select(-mean_temp) %>% filter(!is.na(Forest$total_precip)==T) #remove "NA"
+#table(Forest_P$year)  
+Forest_P2 <- Forest_P %>% filter(year > 1933 & year != 1937 & year!= 1943 & year != 1955 & year != 1960 & year < 1960)
+#table(Forest_P2$year) 
+
+#Lucan
+Lucan <- pinery %>% filter(station == "Lucan")
+
+Lucan_T <- Lucan %>% select(-total_precip) %>% filter(!is.na(Lucan$mean_temp)==T) #remove "NA"
+#table(Lucan_T$year)  
+Lucan_T2 <- Lucan_T %>% filter(year != 1915 & year != 1924 & year != 1948 & year != 1949 & year != 1950
+                               & year != 1951 & year != 1952 & year != 1953 & year != 1954 & year != 1955
+                               & year != 1956 & year != 1957 & year != 1958 & year != 1959 & year != 1961)
+#table(Lucan_T2$year) 
+
+Lucan_P <- Lucan %>% select(-mean_temp) %>% filter(!is.na(Lucan$total_precip)==T) #remove "NA"
+#table(Lucan_P$year)  
+Lucan_P2 <- Lucan_P %>% filter(year != 1915 & year != 1923 & year != 1943 & year < 1948)
+#table(Lucan_P2$year)
+
+#Pinery
+Pinery <- pinery %>% filter(station == "Pinery")
+
+Pinery_T <- Pinery %>% select(-total_precip) %>% filter(!is.na(Pinery$mean_temp)==T) #remove "NA"
+#table(Pinery_T$year)  
+Pinery_T2 <- Pinery_T %>% filter(year != 1979 & year != 1984)
+#table(Pinery_T2$year) 
+
+Pinery_P <- Pinery %>% select(-mean_temp) %>% filter(!is.na(Pinery$total_precip)==T) #remove "NA"
+#table(Pinery_P$year)  
+Pinery_P2 <- Pinery_P %>% filter(year != 1979 & year != 1984)
+#table(Pinery_P2$year)
+
+#Strathrow-Mullifary
+Strathroy <- pinery %>% filter(station == "Strathroy-Mullifary")
+
+Strathroy_T <- Strathroy %>% select(-total_precip) %>% filter(!is.na(Strathroy$mean_temp)==T) #remove "NA"
+#table(Strathroy_T$year)  
+Strathroy_T2 <- Strathroy_T %>% filter(year != 2009 & year != 2010 & year != 2013 & year != 2014 & year != 2015 & year < 2017)
+#table(Strathroy_T2$year) 
+
+Strathroy_P <- Strathroy %>% select(-mean_temp) %>% filter(!is.na(Strathroy$total_precip)==T) #remove "NA"
+#table(Strathroy_P$year)  
+Strathroy_P2 <- Strathroy_P %>% filter(year != 2009 & year != 2010 & year != 2012 & year != 2013 
+                                       & year != 2014 & year != 2015 & year < 2017)
+#table(Strathroy_P2$year)
+
+#Thedford (no temp)
+Thedford <- pinery %>% filter(station == "Thedford")
+
+Thedford_P <- Thedford %>% select(-mean_temp) %>% filter(!is.na(Thedford$total_precip)==T) #remove "NA"
+#table(Thedford_P$year)  
+Thedford_P2 <- Thedford_P %>% filter(year != 1883 & year != 1897)
+#table(Thedford_P2$year)
+
+#Watford (can't use precipitation data)
+Watford <- pinery %>% filter(station == "Watford")
+
+Watford_T <- Watford %>% select(-total_precip) %>% filter(!is.na(Watford$mean_temp)==T) #remove "NA"
+#table(Watford_T$year)  
+Watford_T2 <- Watford_T %>% filter(year == 1927 | year == 1928)
+#table(Watford_T2$year) 
+
+Watford_P <- Watford %>% select(-mean_temp) %>% filter(!is.na(Watford$total_precip)==T) #remove "NA"
+#table(Watford_P$year)  
+```
+
+
+### Re-combine Data
+```{r}
+pinery_temp <- rbind(Arkona_T2, CentraliaA_T2, Exeter_T2, Forest_T2, Lucan_T2, Pinery_T2, Strathroy_T2, Watford_T2)
+pinery_precip <- rbind(Arkona_P2, CentraliaA_P2, Exeter_P2, Forest_P2, Lucan_P2, Pinery_P2, Strathroy_P2, Thedford_P2)
+```
+
+
+Ensure the cleaning worked by plotting histograms of the number of observations (months) in each year (should only be multiples of 12)
+```{r}
+#histogram (temperature)
+graph <- ggplot(pinery_temp, aes(x = year)) +
+  geom_histogram(position = 'identity', binwidth = 1, color = "black", fill = "grey") +
+  geom_hline(yintercept = 12, linetype="solid", color = "red") + #shows 12 months
+    geom_hline(yintercept = 24, linetype="solid", color = "red") + 
+    geom_hline(yintercept = 36, linetype="solid", color = "red") + 
+  theme_bw()
+graph
+
+#histogram (precipitation)
+graph <- ggplot(pinery_precip, aes(x = year)) +
+  geom_histogram(position = 'identity', binwidth = 1, color = "black", fill = "grey") +
+   geom_hline(yintercept = 12, linetype="solid", color = "red") + #shows 12 months
+    geom_hline(yintercept = 24, linetype="solid", color = "red") + 
+  theme_bw()
+graph
+```
+
+## Full Dataset
+
+Calculate one mean temperature and total precipitation for each year/month where more than one station of data is available
+
+```{r}
+#Temperature
+str(pinery_temp)
+
+pinery_temp_mean <- pinery_temp %>%
+  group_by(year,month) %>%
+  summarise(mean_temp_year = mean(mean_temp), sd_temp = sd(mean_temp), n = n()) %>%
+  mutate(se_temp = sd_temp / sqrt(n), lower = (mean_temp_year - se_temp), upper = (mean_temp_year + se_temp)) %>% round(2)
+
+#Precipitation
+pinery_precip_mean <- pinery_precip %>%
+  group_by(year,month) %>%
+  summarise(total_precip_year = mean(total_precip), sd_precip = sd(total_precip), n = n()) %>%
+  mutate(se_precip = sd_precip / sqrt(n), lower = total_precip_year - sd_precip, upper = total_precip_year + sd_precip) %>% round(2)
+
+head(pinery_precip_mean)
+```
+
+### Climograph
+
+```{r}
+study_t <- pinery_temp_mean %>% 
+  group_by(month) %>% 
+  summarize(mean_temp = mean(mean_temp_year)) %>% round(2)
+study_t
+
+study_p <- pinery_precip_mean %>%
+  group_by(month) %>%
+  summarize(total_precip= mean(total_precip_year), sd_precip = sd(total_precip_year), n = n()) %>%
+  mutate(se_precip = sd_precip / sqrt(n), lower = total_precip - se_precip, upper = total_precip + se_precip) %>% round(2)
+study_p
+```
+
+```{r}
+ggplot() + 
+geom_col(data = study_t, aes(x = month, y = mean_temp), fill = "red3", alpha = 0.7) + 
+geom_line(data = study_p, aes(x = month, y = total_precip-80), col= "steelblue4", size = 1.5) +
+  scale_y_continuous("Temperature (°C)", sec.axis = sec_axis(~ . + 80, name = "Precipitation (mm)")) +
+    geom_ribbon(data = study_p, aes(x = month, ymin = (lower-80), ymax = (upper-80)), alpha = 0.3) +
+  scale_x_continuous("Month", breaks = c(1,2,3,4,5,6,7,8,9,10,11,12)) +
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+```
+
+
+
+```{r}
+p.climograph <- ggplot() +
+  geom_boxplot(data = pinery_temp_mean, aes(x = month, y = mean_temp_year, group = month), fill = "red3", alpha = 0.7) +
+  geom_line(data = study_p, aes(x = month, y = total_precip-75), col= "steelblue4", size = 1) +
+  geom_ribbon(data = study_p, aes(x = month, ymin = (lower-75), ymax = (upper-75)), fill = "steelblue4", alpha = 0.2) +
+  scale_y_continuous("Temperature (°C)", sec.axis = sec_axis(~ . + 75, name = "Precipitation (mm)")) +
+  scale_x_continuous("Month", breaks = c(1,2,3,4,5,6,7,8,9,10,11,12)) +
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+p.climograph
+
+#ggsave('p.climograph.pdf', p.climograph, units = 'cm', width = 20, height = 12)
+```
+
+
+
+
+### Write Climate Record to CSV
+```{r}
+#write.csv(pinery_temp_mean, file = "outputs/temperature.csv")
+#write.csv(pinery_precip_mean, file = "outputs/precipitation.csv")
+```
+
+## Annual Dataset
+
+```{r}
+london_temp_annual <- london_temp %>% filter(month == "Annual")
+london_precip_annual <- london_precip %>% filter(month == "Annual")
+pinery_temp_annual <- pinery_temp_mean %>% group_by(year) %>% summarise(mean_temp = mean(mean_temp_year))
+pinery_precip_annual <- pinery_precip_mean %>% group_by(year) %>% summarise(total_precip = sum(total_precip_year))
+```
+
+```{r}
+london_temp_2 <- london_temp_annual %>% select(-month)
+london_temp_2$location <- "London"
+pinery_temp_annual$location <- "Pinery"
+annual_temp <- rbind(london_temp_2,pinery_temp_annual) #join data sets
+
+london_precip_2 <- london_precip_annual %>% select(-month)
+london_precip_2$location <- "London"
+pinery_precip_annual$location <- "Pinery"
+annual_precip <- rbind(london_precip_2,pinery_precip_annual) #join data sets
+```
+
+
+Plot Temperature
+```{r}
+annual_temp_plot <- ggplot() +
+  # London Data
+  geom_line(data=london_temp_annual, aes(x = year, y = mean_temp), colour = "lightseagreen", linetype = "dashed", alpha = 0.8) +
+  # Pinery Data
+  geom_line(data=pinery_temp_annual, aes(x = year, y = mean_temp), colour="lightsalmon4") +
+  #Aesthetics
+  xlab("Year") +
+  ylab("Mean Annual Temperature (°C)") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+  #ggtitle("Average Annual Temperature in \n Southwestern Ontario from 1883 to 2017") + 
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+
+annual_temp_plot
+
+#ggsave('annual_temp.pdf', annual_temp_plot, units = 'cm', width = 15, height = 10)
+
+```
+
+Plot recent temperature
+```{r}
+pinery_temp_annual_recent <- pinery_temp_annual %>% filter(year > 1949)
+
+annual_temp_plot2 <- ggplot() +
+  # Pinery Data
+  geom_line(data=pinery_temp_annual_recent, aes(x = year, y = mean_temp)) +
+  geom_point(data=pinery_temp_annual_recent, aes(x = year, y = mean_temp), size = 1)  +
+  #Aesthetics
+  xlab("Year") +
+  ylab("Temperature (°C)") +
+  scale_x_continuous(breaks=seq(1950,2020,10)) +
+  #ggtitle("Average Annual Temperature in \n Southwestern Ontario from 1883 to 2017") + 
+  scale_colour_manual(name="Location", breaks = c("London", "Pinery"),
+                      values = c("blue","darkgreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+#ggsave('annual_temp.pdf', annual_temp_plot, units = 'cm', width = 20, height = 12)
+annual_temp_plot2
+```
+
+Plot Precipitation
+```{r}
+annual_precip_plot <- ggplot() +
+  # London Data
+  geom_line(data=london_precip_annual, aes(x = year, y = total_precip), colour = "lightseagreen", linetype = "dashed", alpha = 0.8) +
+   # geom_smooth(data=london_precip_annual, aes(x = year, y = total_precip), se = TRUE, 
+             # method = 'lm', size = 0.8, colour = "black", fill = "blue") +
+  # Pinery Data
+  geom_line(data=pinery_precip_annual, aes(x = year, y = total_precip, group = 1),  colour="lightsalmon4")+
+   # geom_smooth(data=pinery_precip_annual, aes(x = year, y = total_precip), se = TRUE, 
+            #  method = 'lm', size = 0.8, colour = "black", fill = "darkgreen") +
+  #Aesthetics
+  xlab("Year") +
+  ylab("Total Annual Precipitation (mm)") +
+  scale_x_continuous(breaks=seq(1880,2020,20)) +
+  #ggtitle("Annual Precipitation in Southwestern Ontario \nfrom 1883 to 2017") + 
+  scale_colour_manual(name="Location", breaks = c("London", "Pinery"),
+                      values = c("blue","darkgreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+
+annual_precip_plot
+
+#ggsave('annual_precip.pdf', annual_precip_plot, units = 'cm', width = 15, height = 10)
+```
+
+```{r}
+annual_plot <- grid.arrange(annual_temp_plot, annual_precip_plot, ncol= 2)
+#ggsave('annual_plot.pdf', annual_plot, units = 'cm', width = 23, height = 8)
+```
+
+
+## Seasonal Dataset
+
+```{r}
+winter_t <- pinery_temp %>% filter(month == 1 | month == 2 | month == 3)
+winter_t$season <- "winter"
+spring_t <- pinery_temp %>% filter(month == 4 | month == 5 | month == 6)
+spring_t$season <- "spring"
+summer_t <- pinery_temp %>% filter(month == 7 | month == 8 | month == 9)
+summer_t$season <- "summer"
+fall_t <- pinery_temp %>% filter(month == 10 | month == 11 | month == 12)
+fall_t$season <- "fall"
+pinery_temp <- rbind(winter_t, spring_t, summer_t, fall_t)
+pinery_temp$season <- as.factor(pinery_temp$season) #Make a factor 
+str(pinery_temp)
+
+pinery_temp_station <- pinery_temp %>% 
+ group_by(year, season, station) %>% 
+ summarise(mean_temp = mean(mean_temp))
+
+pinery_temp_season <- pinery_temp_station %>%
+  group_by(year, season) %>%
+  summarise(mean_temp_season = mean(mean_temp) %>% round(2), sd_temp = sd(mean_temp) %>% round(2), n = n()) %>% 
+  mutate(se_temp = (sd_temp / sqrt(n)) %>% round(2), lower = mean_temp_season - se_temp, upper = mean_temp_season + se_temp) 
+
+head(pinery_temp_season)
+```
+
+```{r}
+winter_p <- pinery_precip %>% filter(month == 1 | month == 2 | month == 3)
+winter_p$season <- "winter"
+spring_p <- pinery_precip %>% filter(month == 4 | month == 5 | month == 6)
+spring_p$season <- "spring"
+summer_p <- pinery_precip %>% filter(month == 7 | month == 8 | month == 9)
+summer_p$season <- "summer"
+fall_p <- pinery_precip %>% filter(month == 10 | month == 11 | month == 12)
+fall_p$season <- "fall"
+pinery_precip <- rbind(winter_p, spring_p, summer_p, fall_p)
+pinery_precip$season <- as.factor(pinery_precip$season) #Make a factor 
+
+pinery_precip_station <- pinery_precip %>%
+  group_by(year, season, station) %>%
+  summarise(total_precip = mean(total_precip))
+
+pinery_precip_season <- pinery_precip_station %>% 
+  group_by(year, season) %>% 
+  summarise(total_precip_season = mean(total_precip) %>% round(2), sd_precip = sd(total_precip) %>% round(2), n = n()) %>%
+  mutate(se_precip = sd_precip / sqrt(n), lower = total_precip_season - sd_precip, upper = total_precip_season + sd_precip %>% round(2)) 
+
+head(pinery_precip_season)
+```
+
+```{r}
+winter_tl <- london_temp %>% filter(month == "Jan" | month == "Feb" | month == "Mar")
+winter_tl$season <- "winter"
+spring_tl <- london_temp %>% filter(month == "Apr" | month == "May" | month == "Jun")
+spring_tl$season <- "spring"
+summer_tl <- london_temp %>% filter(month == "Jul" | month == "Aug" | month == "Sep")
+summer_tl$season <- "summer"
+fall_tl <- london_temp %>% filter(month == "Oct" | month == "Nov" | month == "Dec")
+fall_tl$season <- "fall"
+london_temp <- rbind(winter_tl, spring_tl, summer_tl, fall_tl)
+london_temp$season <- as.factor(london_temp$season) #Make a factor 
+str(london_temp)
+
+london_temp_season <- london_temp %>% 
+  group_by(year, season) %>% 
+  summarise(mean_temp_season = mean(mean_temp))
+```
+
+```{r}
+winter_pl <- london_precip %>% filter(month == "Jan" | month == "Feb" | month == "Mar")
+winter_pl$season <- "winter"
+spring_pl <- london_precip %>% filter(month == "Apr" | month == "May" | month == "Jun")
+spring_pl$season <- "spring"
+summer_pl <- london_precip %>% filter(month == "Jul" | month == "Aug" | month == "Sep")
+summer_pl$season <- "summer"
+fall_pl <- london_precip %>% filter(month == "Oct" | month == "Nov" | month == "Dec")
+fall_pl$season <- "fall"
+london_precip <- rbind(winter_pl, spring_pl, summer_pl, fall_pl)
+london_precip$season <- as.factor(london_precip$season) #Make a factor 
+str(london_precip)
+
+london_precip_season <- london_precip %>% 
+  group_by(year, season) %>% 
+  summarise(total_precip_season = mean(total_precip))
+```
+
+Make a factor
+
+```{r}
+london_temp_season$season <- factor(london_temp_season$season, levels = c("winter", "spring", "summer", "fall"))
+pinery_temp_season$season <- factor(pinery_temp_season$season, levels = c("winter", "spring", "summer", "fall"))
+```
+
+### Combine London & Pinery Records
+
+```{r}
+pinery_temp_season$location <- "Pinery"
+london_temp_season$location <- "London"
+season_temp <- rbind(pinery_temp_season, london_temp_season)
+
+pinery_precip_season$location <- "Pinery"
+london_precip_season$location <- "London"
+season_precip <- rbind(pinery_precip_season, london_precip_season)
+
+season_temp$location <- factor(season_temp$location, levels = c("Pinery", "London"))
+season_precip$location <- factor(season_precip$location, levels = c("Pinery", "London"))
+```
+
+
+Plot Temperature
+```{r}
+w_temp <- ggplot() +
+  geom_line(data=(season_temp %>% filter(season == "winter")), aes(x = year, y = mean_temp_season, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature (°C)") + ggtitle("Winter") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+  scale_color_manual(values = c("lightsalmon4", "lightseagreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+sp_temp <- ggplot() +
+  geom_line(data=(season_temp %>% filter(season == "spring")), aes(x = year, y = mean_temp_season, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature (°C)") + ggtitle("Spring") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+    scale_color_manual(values = c("lightsalmon4", "lightseagreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+su_temp <- ggplot() +
+  geom_line(data=(season_temp %>% filter(season == "summer")), aes(x = year, y = mean_temp_season, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature (°C)") + ggtitle("Summer") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+    scale_color_manual(values = c("lightsalmon4", "lightseagreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+fa_temp <- ggplot() +
+  geom_line(data=(season_temp %>% filter(season == "fall")), aes(x = year, y = mean_temp_season, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature (°C)") + ggtitle("Fall") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+    scale_color_manual(values = c("lightsalmon4", "lightseagreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),  legend.position = "none") 
+
+seasonal_temp_plot <- grid.arrange(w_temp, sp_temp, su_temp, fa_temp, nrow = 2, ncol = 2)
+#ggsave('seasonal_temperature.pdf', seasonal_temp_plot, units = 'cm', width = 20, height = 12)
+```
+
+
+
+
+
+Plot Precipitation
+```{r}
+w_precip <- ggplot() +
+  geom_line(data=(season_precip %>% filter(season == "winter")), aes(x = year, y = total_precip_season, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Precipitation (mm)") + ggtitle("Winter") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+      scale_color_manual(values = c("lightsalmon4", "lightseagreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+sp_precip <- ggplot() +
+  geom_line(data=(season_precip %>% filter(season == "spring")), aes(x = year, y = total_precip_season, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Precipitation (mm)") + ggtitle("Spring") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+      scale_color_manual(values = c("lightsalmon4", "lightseagreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+su_precip <- ggplot() +
+  geom_line(data=(season_precip %>% filter(season == "summer")), aes(x = year, y = total_precip_season, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Precipitation (mm)") + ggtitle("Summer") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+      scale_color_manual(values = c("lightsalmon4", "lightseagreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+fa_precip <- ggplot() +
+  geom_line(data=(season_precip %>% filter(season == "fall")), aes(x = year, y = total_precip_season, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Precipitation (mm)") + ggtitle("Fall") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+      scale_color_manual(values = c("lightsalmon4", "lightseagreen")) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),  legend.position = "none") 
+
+seasonal_precip_plot <- grid.arrange(w_precip, sp_precip, su_precip, fa_precip, nrow = 2, ncol = 2)
+#ggsave('seasonal_precipitation.pdf', seasonal_precip_plot, units = 'cm', width = 20, height = 12)
+```
+
+Pink = London
+Blue = Pinery
+
+
+#### Temperature Anomaly
+
+https://tamino.wordpress.com/2018/07/29/why-use-temperature-anomaly/
+
+Average defined as 1951-1980 (NASA standard)
+
+```{r}
+pinery_average <- season_temp %>% filter(location == "Pinery") %>% filter(year > 1950 & year < 1981)
+pinery_average <- pinery_average %>% group_by(season) %>% summarise(pinery_average = mean(mean_temp_season))
+
+london_average <- season_temp %>% filter(location == "London") %>% filter(year > 1950 & year < 1981)
+london_average <- london_average %>% group_by(season) %>% summarise(london_average = mean(mean_temp_season))
+```
+
+
+```{r}
+pinery_anomaly <- right_join(season_temp, pinery_average)
+pinery_anomaly <- mutate(pinery_anomaly, anomaly = mean_temp_season - pinery_average) %>% filter(location == "Pinery")
+
+london_anomaly <- right_join(season_temp, london_average)
+london_anomaly <- mutate(london_anomaly, anomaly = mean_temp_season - london_average) %>% filter(location == "London")
+
+season_anomaly <- full_join(pinery_anomaly, london_anomaly) %>% select(-pinery_average, -london_average)
+```
+```{r}
+w_anomaly <- ggplot() +
+  geom_line(data=(season_anomaly %>% filter(season == "winter")), aes(x = year, y = anomaly, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature Anomaly (°C)") + ggtitle("Winter") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+sp_anomaly <- ggplot() +
+  geom_line(data=(season_anomaly %>% filter(season == "spring")), aes(x = year, y = anomaly, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature Anomaly (°C)") + ggtitle("Spring") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+su_anomaly <- ggplot() +
+  geom_line(data=(season_anomaly %>% filter(season == "summer")), aes(x = year, y = anomaly, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature Anomaly (°C)") + ggtitle("Summer") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+fa_anomaly <- ggplot() +
+  geom_line(data=(season_anomaly %>% filter(season == "fall")), aes(x = year, y = anomaly, col = location, linetype = location)) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature Anomaly (°C)") + ggtitle("Fall") +
+  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),  legend.position = "none") 
+
+seasonal_anomaly_plot <- grid.arrange(w_anomaly, sp_anomaly, su_anomaly, fa_anomaly, nrow = 2, ncol = 2)
+#ggsave('seasonal_anomaly.pdf', seasonal_anomaly_plot, units = 'cm', width = 20, height = 12)
+```
+
+Plot recent temperature anomaly
+
+```{r}
+w_anomaly <- ggplot() +
+  geom_line(data=(season_anomaly %>% filter(season == "winter", year > 1949, location == "Pinery")), aes(x = year, y = anomaly)) +
+  geom_point(data=(season_anomaly %>% filter(season == "winter", year > 1949, location == "Pinery")), aes(x = year, y = anomaly), size = 0.5) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature Anomaly (°C)") + ggtitle("Winter") +
+  scale_x_continuous(limits = c(1950, 2020), breaks=seq(1950,2020,10)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+sp_anomaly <- ggplot() +
+  geom_line(data=(season_anomaly %>% filter(season == "spring", year > 1949, location == "Pinery")), aes(x = year, y = anomaly)) +
+ geom_point(data=(season_anomaly %>% filter(season == "spring", year > 1949, location == "Pinery")), aes(x = year, y = anomaly), size = 0.5) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature Anomaly (°C)") + ggtitle("Spring") +
+  scale_x_continuous(limits = c(1950, 2020), breaks=seq(1950,2020,10)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+su_anomaly <- ggplot() +
+  geom_line(data=(season_anomaly %>% filter(season == "summer", year > 1949, location == "Pinery")), aes(x = year, y = anomaly)) +
+  geom_point(data=(season_anomaly %>% filter(season == "summer", year > 1949, location == "Pinery")), aes(x = year, y = anomaly), size = 0.5) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature Anomaly (°C)") + ggtitle("Summer") +
+  scale_x_continuous(limits = c(1950, 2020), breaks=seq(1950,2020,10)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none") 
+
+fa_anomaly <- ggplot() +
+  geom_line(data=(season_anomaly %>% filter(season == "fall", year > 1949, location == "Pinery")), aes(x = year, y = anomaly)) +
+    geom_point(data=(season_anomaly %>% filter(season == "fall", year > 1949, location == "Pinery")), aes(x = year, y = anomaly), size = 0.5) +
+  #Aesthetics
+  xlab("Year") + ylab("Temperature Anomaly (°C)") + ggtitle("Fall") +
+  scale_x_continuous(limits = c(1950, 2020), breaks=seq(1950,2020,10)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+ theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),  legend.position = "none") 
+
+seasonal_anomaly_plot <- grid.arrange(w_anomaly, sp_anomaly, su_anomaly, fa_anomaly, nrow = 2, ncol = 2)
+```
+
+
+```{r}
+#write.csv(season_temp, file = "outputs/season_temperature.csv")
+#write.csv(season_precip, file = "outputs/season_precipitation.csv")
+#write.csv(pinery_temp_annual, file = "outputs/annual_temp.csv")
+```
+
+### Verify Record
+
+Calculate correlation with London Record
+
+
+
+
+
+
+
+
+
+
