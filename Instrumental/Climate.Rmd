@@ -215,6 +215,7 @@ head(pinery_precip_mean)
 
 ### Climograph
 
+
 ```{r}
 study_t <- pinery_temp_mean %>% 
   group_by(month) %>% 
@@ -255,7 +256,20 @@ p.climograph
 
 #ggsave('p.climograph.pdf', p.climograph, units = 'cm', width = 20, height = 12)
 ```
+```{r}
+str(pinery_precip)
+```
 
+
+```{r}
+
+pinery_precip$month <- as.factor(pinery_precip$month)
+
+ggplot() + 
+  geom_boxplot(data = pinery_precip, aes(x = month, y = total_precip), alpha = 0.7) + 
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+```
 
 
 
