@@ -33,68 +33,6 @@ all <- read.csv("data/output_1901-2018MSY.csv")
 
 
 
-```{r}
-str(season)
-```
-
-```{r}
-season_Tmax <- season %>% 
-  select(Year, starts_with("Tmax")) %>%
-  gather(key = "Season", value = "Tmax", 2:5)
-season_Tmax$Season <- as.factor(season_Tmax$Season)
-levels(season_Tmax$Season) <- c("Winter", "Spring", "Summer", "Autumn")
-
-season_Tmin <- season %>% 
-  select(Year, starts_with("Tmin")) %>%
-  gather(key = "Season", value = "Tmin", 2:5)
-season_Tmin$Season <- as.factor(season_Tmin$Season)
-levels(season_Tmin$Season) <- c("Winter", "Spring", "Summer", "Autumn")
-
-season_Tave <- season %>% 
-  select(Year, starts_with("Tave")) %>%
-  gather(key = "Season", value = "Tave", 2:5)
-season_Tave$Season <- as.factor(season_Tave$Season)
-levels(season_Tave$Season) <- c("Winter", "Spring", "Summer", "Autumn")
-
-season_PPT <- season %>% 
-  select(Year, starts_with("PPT")) %>%
-  gather(key = "Season", value = "PPT", 2:5)
-season_PPT$Season <- as.factor(season_PPT$Season)
-levels(season_PPT$Season) <- c("Winter", "Spring", "Summer", "Autumn")
-
-season_Rad <- season %>% 
-  select(Year, starts_with("Rad")) %>%
-  gather(key = "Season", value = "Rad", 2:5)
-season_Rad$Season <- as.factor(season_Rad$Season)
-levels(season_Rad$Season) <- c("Winter", "Spring", "Summer", "Autumn")
-
-season_Eref <- season %>% 
-  select(Year, starts_with("Eref")) %>%
-  gather(key = "Season", value = "Eref", 2:5)
-season_Eref$Season <- as.factor(season_Eref$Season)
-levels(season_Eref$Season) <- c("Winter", "Spring", "Summer", "Autumn")
-
-season_CMD <- season %>% 
-  select(Year, starts_with("CMD")) %>%
-  gather(key = "Season", value = "CMD", 2:5)
-season_CMD$Season <- as.factor(season_CMD$Season)
-levels(season_CMD$Season) <- c("Winter", "Spring", "Summer", "Autumn")
-
-season_RH <- season %>% 
-  select(Year, starts_with("RH")) %>%
-  gather(key = "Season", value = "RH", 2:5)
-season_RH$Season <- as.factor(season_RH$Season)
-levels(season_RH$Season) <- c("Winter", "Spring", "Summer", "Autumn")
-```
-
-```{r}
-season_tidy <-list(season_Tmax, season_Tmin, season_Tave, season_PPT, season_Rad, season_Eref, season_CMD, season_RH) %>% reduce(full_join)
-
-str(season_tidy)
-```
-
-
-
 
 
 ## Annual
@@ -161,6 +99,67 @@ Derived seasonal variables:
 - Eref_wt 	winter Hargreaves reference evaporation (mm)
 - CMD_wt 	winter Hargreaves climatic moisture deficit (mm)
 - RH_wt		winter relative humidity (%)
+
+
+```{r}
+str(season)
+```
+
+```{r}
+season_Tmax <- season %>% 
+  select(Year, starts_with("Tmax")) %>%
+  gather(key = "Season", value = "Tmax", 2:5)
+season_Tmax$Season <- as.factor(season_Tmax$Season)
+levels(season_Tmax$Season) <- c("Autumn","Summer","Spring","Winter")
+
+season_Tmin <- season %>% 
+  select(Year, starts_with("Tmin")) %>%
+  gather(key = "Season", value = "Tmin", 2:5)
+season_Tmin$Season <- as.factor(season_Tmin$Season)
+levels(season_Tmin$Season) <- c("Autumn","Summer","Spring","Winter")
+
+season_Tave <- season %>% 
+  select(Year, starts_with("Tave")) %>%
+  gather(key = "Season", value = "Tave", 2:5)
+season_Tave$Season <- as.factor(season_Tave$Season)
+levels(season_Tave$Season) <- c("Autumn","Summer","Spring","Winter")
+
+season_PPT <- season %>% 
+  select(Year, starts_with("PPT")) %>%
+  gather(key = "Season", value = "PPT", 2:5)
+season_PPT$Season <- as.factor(season_PPT$Season)
+levels(season_PPT$Season) <- c("Autumn","Summer","Spring","Winter")
+
+season_Rad <- season %>% 
+  select(Year, starts_with("Rad")) %>%
+  gather(key = "Season", value = "Rad", 2:5)
+season_Rad$Season <- as.factor(season_Rad$Season)
+levels(season_Rad$Season) <- c("Autumn","Summer","Spring","Winter")
+
+season_Eref <- season %>% 
+  select(Year, starts_with("Eref")) %>%
+  gather(key = "Season", value = "Eref", 2:5)
+season_Eref$Season <- as.factor(season_Eref$Season)
+levels(season_Eref$Season) <- c("Autumn","Summer","Spring","Winter")
+
+season_CMD <- season %>% 
+  select(Year, starts_with("CMD")) %>%
+  gather(key = "Season", value = "CMD", 2:5)
+season_CMD$Season <- as.factor(season_CMD$Season)
+levels(season_CMD$Season) <- c("Autumn","Summer","Spring","Winter")
+
+season_RH <- season %>% 
+  select(Year, starts_with("RH")) %>%
+  gather(key = "Season", value = "RH", 2:5)
+season_RH$Season <- as.factor(season_RH$Season)
+levels(season_RH$Season) <- c("Autumn","Summer","Spring","Winter")
+```
+
+```{r}
+season_tidy <-list(season_Tmax, season_Tmin, season_Tave, season_PPT, season_Rad, season_Eref, season_CMD, season_RH) %>% reduce(full_join)
+
+str(season_tidy)
+```
 
 
 
@@ -251,10 +250,6 @@ str(monthly_tidy)
 
 # Visualize Data
 
-```{r}
-str(annual)
-```
-
 
 
 ## Annual
@@ -267,29 +262,7 @@ str(annual)
   scale_x_continuous(limits = c(1900, 2020), breaks=seq(1900,2020,10)) +
   theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
-```
 
-```{r}
-ggplot() +
-  # London Data
-  geom_line(data=london_temp_annual, aes(x = year, y = mean_temp), colour = "lightseagreen", linetype = "dashed", alpha = 0.8) +
-  # Pinery Data
-  geom_line(data=pinery_temp_annual, aes(x = year, y = mean_temp), colour="lightsalmon4", linetype = "dashed", alpha = 0.8) +
-  # ClimateNA
-  geom_line(data=annual, aes(x = Year, y = MAT), colour="darkgreen") +
-  #Aesthetics
-  xlab("Year") +
-  ylab("Mean Annual Temperature (°C)") +
-  scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
-  #ggtitle("Average Annual Temperature in \n Southwestern Ontario from 1883 to 2017") + 
-  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
- theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
-```
-
-
-
-
-```{r}
 ggplot() +
   geom_line(data=annual, aes(x=Year, y=MAP), colour = "darkgreen") +
   #Aesthetics
@@ -315,15 +288,36 @@ ggplot() +
   theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
 
+ggplot() +
+  geom_line(data=annual, aes(x=Year, y=CMD), colour = "darkgreen") +
+  xlab("Year") +
+  ylab("Climate Moisture Defecit") +
+  scale_x_continuous(breaks=seq(1900,2020,10)) +
+  theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
 ```
 
 ## Seasonal
+```{r}
+str(season_tidy)
+```
+
 
 ```{r}
-ggplot (data = season_tidy, aes(x=Year, y = Tave)) +
+ggplot (data = season_tidy, aes(x=Year, y = Tave, col= Season)) +
   geom_line() +
-  facet_grid(~Season)
+  theme_classic()
+
+ggplot (data = season_tidy, aes(x=Year, y = PPT, col= Season)) +
+  geom_line() +
+  facet_grid(Season~.) +
+  theme_classic()
+
+ggplot (data = season_tidy, aes(x=Year, y = CMD, col= Season)) +
+  geom_line() +
+  theme_classic()
 ```
+
 
 ```{r}
 str(season_tidy)
@@ -403,40 +397,86 @@ seasonal_precip_plotNA <- grid.arrange(w_precipNA, sp_precipNA, su_precipNA, au_
 str(monthly_tidy)
 ```
 
+
+
+
 ```{r}
-str(monthly_tidy)
+ggplot() + 
+  geom_boxplot(data = monthly_tidy, aes(x = Month, y = Tave), alpha = 0.3) +
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+
+ggplot() + 
+  geom_boxplot(data = monthly_tidy, aes(x = Month, y = PPT), alpha = 0.7) + 
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+
+
+ggplot() + 
+  geom_boxplot(data = monthly_tidy, aes(x = Month, y = CMD), alpha = 0.7) + 
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+
+
+ggplot() + 
+  geom_boxplot(data = monthly_tidy, aes(x = Month, y = RH), alpha = 0.7) + 
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+
 ```
 
-```{r}
 
+
+
+```{r}
+ggplot(data = monthly_tidy, aes(x=Year, y = Tave)) +
+  geom_line() +
+  facet_grid(Month~.) + 
+  theme_classic() 
+
+ggplot(data = monthly_tidy, aes(x=Year, y = PPT)) +
+  geom_line() +
+  facet_grid(Month~.) + 
+  theme_classic() 
+
+ggplot(data = monthly_tidy, aes(x=Year, y = CMD)) +
+  geom_line() +
+  facet_grid(Month~.) + 
+  theme_classic() 
+```
+
+### Climograph
+
+```{r}
 NA_p <- monthly_tidy %>% 
   group_by(Month) %>%
   summarize(mean_precip= mean(PPT), sd_precip = sd(PPT), n = n()) #%>%
   
 NA_p$Month <- as.numeric(NA_p$Month)
 
-NA_p %>% mutate(se_precip = sd_precip / sqrt(n), lower = total_precip - se_precip, upper = total_precip + se_precip) %>% round(2)
+NA_p <- NA_p %>% mutate(se_precip = sd_precip / sqrt(n), lower = mean_precip - se_precip, upper = mean_precip + se_precip) %>% round(2)
 NA_p
 ```
 
 ```{r}
-ggplot() + 
-  geom_boxplot(data = monthly_tidy, aes(x = Month, y = Tave), alpha = 0.7) + 
+ggplot() +
+  geom_boxplot(data = monthly_tidy, aes(x = Month, y = Tave), fill = "red3", alpha = 0.7) +
+  geom_line(data = NA_p, aes(x = Month, y = mean_precip-75), col= "steelblue4", size = 1) +
+    geom_ribbon(data = NA_p, aes(x = Month, ymin = (lower-75), ymax = (upper-75)), alpha = 0.3, fill= "steelblue4") +
+  scale_y_continuous("Temperature (°C)", sec.axis = sec_axis(~ . + 75, name = "Precipitation (mm)")) +
   theme_bw() +
-   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
-
-ggplot() + 
-  geom_line(data = NA_p, aes(x = Month, y = mean_precip), col= "steelblue4", size = 1.5) +
-  theme_bw() +
-   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
-
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 ```
+
+
+
 
 
 # Save Outputs
 
 ```{r}
-
+write.csv(monthly_tidy, "outputs/monthly_tidy.csv")
+write.csv(season_tidy, "outputs/season_tidy.csv")
 ```
 
 
@@ -444,4 +484,5 @@ ggplot() +
 ```{r}
 Sys.time()
 git2r::repository()
-sessionInfo(
+sessionInfo()
+```

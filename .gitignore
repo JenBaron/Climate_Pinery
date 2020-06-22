@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+Instrumental/Archive
+Instrumental/data
+Instrumental/figures
+Instrumental/outputs
+ClimateNA/data
+ClimateNA/figures
+ClimateNA/outputs

@@ -203,6 +203,7 @@ pinery_temp_mean <- pinery_temp %>%
   group_by(year,month) %>%
   summarise(mean_temp_year = mean(mean_temp), sd_temp = sd(mean_temp), n = n()) %>%
   mutate(se_temp = sd_temp / sqrt(n), lower = (mean_temp_year - se_temp), upper = (mean_temp_year + se_temp)) %>% round(2)
+pinery_temp_mean$month <- as.factor(pinery_temp_mean$month)
 
 #Precipitation
 pinery_precip_mean <- pinery_precip %>%
@@ -213,8 +214,8 @@ pinery_precip_mean <- pinery_precip %>%
 head(pinery_precip_mean)
 ```
 
-### Climograph
 
+### Climograph
 
 ```{r}
 study_t <- pinery_temp_mean %>% 
@@ -256,20 +257,7 @@ p.climograph
 
 #ggsave('p.climograph.pdf', p.climograph, units = 'cm', width = 20, height = 12)
 ```
-```{r}
-str(pinery_precip)
-```
 
-
-```{r}
-
-pinery_precip$month <- as.factor(pinery_precip$month)
-
-ggplot() + 
-  geom_boxplot(data = pinery_precip, aes(x = month, y = total_precip), alpha = 0.7) + 
-  theme_bw() +
-   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
-```
 
 
 
@@ -689,6 +677,8 @@ Calculate correlation with London Record
 # Save Outputs
 
 ```{r}
+write.csv(pinery_temp_mean, "outputs/monthly_temperature.csv")
+write.csv(pinery_precip_mean, "outputs/monthly_precipitation.csv")
 #write.csv(season_temp, file = "outputs/season_temperature.csv")
 #write.csv(season_precip, file = "outputs/season_precipitation.csv")
 #write.csv(pinery_temp_annual, file = "outputs/annual_temp.csv")
@@ -699,7 +689,7 @@ Calculate correlation with London Record
 ```{r}
 Sys.time()
 git2r::repository()
-sessionInfo(
+sessionInfo()
 ```
 
 

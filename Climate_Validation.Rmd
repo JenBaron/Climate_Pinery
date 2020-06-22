@@ -1,0 +1,290 @@
+---
+title: "Climate Validation"
+author: "Jen Baron, j.baron@alumni.ubc.ca, UBC Tree Ring Lab"
+date: 'June 2, 2020'
+output:
+  html_document:
+    theme: flatly
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+---
+
+# Packages
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(gridExtra)
+library(Hmisc) #for correlation matrix
+```
+
+# Read Data
+
+
+```{r}
+NA.month <- read.csv("ClimateNA/outputs/monthly_tidy.csv")
+inst.month.P <- read.csv("Instrumental/outputs/monthly_precipitation.csv")
+inst.month.T <- read.csv("Instrumental/outputs/monthly_temperature.csv")
+```
+
+# Prepare Data
+
+```{r}
+NA.month$Month <- as.factor(NA.month$Month)
+inst.month.P$month <- as.factor(inst.month.P$month)
+inst.month.T$month <- as.factor(inst.month.T$month)
+```
+
+```{r}
+m.m.t <- NA.month %>% select(Year, Month, Tave)
+
+i.m.t <- inst.month.T %>% 
+  select(year, month, mean_temp_year) %>%
+  filter(year > 1900) %>%
+  rename(Year = year,
+         Month = month,
+         Tave = mean_temp_year)
+
+m.m.t$Source <- "ClimateNA"
+i.m.t$Source <- "Instrumental"
+
+months.T <- rbind(m.m.t, i.m.t)
+```
+
+
+```{r}
+m.m.p <- NA.month %>% select(Year, Month, PPT)
+
+i.m.p <- inst.month.P %>% 
+  select(year, month, total_precip_year) %>%
+  filter(year > 1900) %>%
+  rename(Year = year,
+         Month = month,
+         PPT = total_precip_year)
+
+m.m.p$Source <- "ClimateNA"
+i.m.p$Source <- "Instrumental"
+
+months.P <- rbind(m.m.p, i.m.p)
+```
+
+
+
+# Visualize Data
+
+## Months
+
+```{r}
+ggplot() + 
+  geom_boxplot(data = NA.month, aes(x = Month, y = Tave), alpha = 0.2, col = "darkblue", notch = TRUE) + 
+  geom_boxplot(data = inst.month.T, aes(x = month, y = mean_temp_year), alpha = 0.2, col = "darkgreen", notch = TRUE) + 
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+```
+
+
+```{r}
+ggplot() + 
+  geom_boxplot(data = NA.month, aes(x = Month, y = PPT), alpha = 0.2, col = "darkblue", notch = TRUE) + 
+  geom_boxplot(data = inst.month.P, aes(x = month, y = total_precip_year), alpha = 0.2, col = "darkgreen", notch = TRUE) + 
+  theme_bw() +
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+```
+
+
+```{r}
+ggplot(data = months.T, aes(x=Year, y = Tave, col = Source)) +
+  geom_line(alpha = 0.6) +
+  facet_grid(Month~.) + 
+  theme_classic() 
+
+
+ggplot(data = months.P, aes(x=Year, y = PPT, col = Source)) +
+  geom_line(alpha = 0.6) +
+  facet_grid(Month~.) + 
+  theme_classic() 
+```
+
+
+```{r}
+# ggplot() +
+#  geom_line(data = study_p, aes(x = month, y = total_precip), col= "skyblue", size = 1) +
+#   geom_ribbon(data = study_p, aes(x = month, ymin = (lower), ymax = (upper)), fill = "skyblue", alpha = 0.2) +
+#   geom_line(data = NA_p, aes(x = Month, y = mean_precip), col= "steelblue4", size = 1) +
+#   geom_ribbon(data = NA_p, aes(x = Month, ymin = (lower), ymax = (upper)), alpha = 0.2, fill= "steelblue4") +
+#   scale_x_continuous(breaks = c(1,2,3,4,5,6,7,8,9,10,11,12)) +
+#   theme_bw() +
+#    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+```
+
+
+## Annual
+
+```{r}
+# ggplot() +
+#   # London Data
+#   geom_line(data=london_temp_annual, aes(x = year, y = mean_temp), colour = "lightseagreen", linetype = "dashed", alpha = 0.8) +
+#   # Pinery Data
+#   geom_line(data=pinery_temp_annual, aes(x = year, y = mean_temp), colour="lightsalmon4", linetype = "dashed", alpha = 0.8) +
+#   # ClimateNA
+#   geom_line(data=annual, aes(x = Year, y = MAT), colour="darkgreen") +
+#   #Aesthetics
+#   xlab("Year") +
+#   ylab("Mean Annual Temperature (°C)") +
+#   scale_x_continuous(limits = c(1880, 2020), breaks=seq(1880,2020,20)) +
+#   #ggtitle("Average Annual Temperature in \n Southwestern Ontario from 1883 to 2017") + 
+#   theme_bw() + theme(plot.title = element_text(hjust = 0.5)) +
+#  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) 
+```
+
+
+# Model
+
+
+
+
+```{r}
+i.m.p <- i.m.p %>% rename(Instrumental=PPT) %>% select(-Source)
+m.m.p <- m.m.p %>% rename(ClimateNA=PPT)  %>% select(-Source)
+
+p.complete <- right_join(i.m.p, m.m.p, by = c("Year", "Month")) %>% na.omit()
+  
+p.matrix <- p.complete %>% select(-Year, -Month)
+```
+
+```{r}
+i.m.t <- i.m.t %>% rename(Instrumental=Tave) %>% select(-Source)
+m.m.t <- m.m.t %>% rename(ClimateNA=Tave)  %>% select(-Source)
+
+t.complete  <- right_join(i.m.t, m.m.t, by = c("Year", "Month")) %>% na.omit()
+
+t.matrix <- t.complete %>% select(-Year, -Month)
+```
+
+
+
+## Fit Model
+
+
+```{r}
+m.t1 <- lm(data = t.complete, ClimateNA ~ Instrumental)
+summary(m.t1)
+```
+
+
+Remove outliers
+
+```{r}
+p.complete <- p.complete %>% filter(Instrumental < 200)
+```
+
+Relevel
+
+```{r}
+p.complete$Month <- relevel(p.complete$Month, ref = 5)
+```
+
+```{r}
+m.p1 <- lm(data = p.complete, ClimateNA ~ Instrumental)
+summary(m.p1)
+
+m.p2 <- lm(data = p.complete, ClimateNA ~ Instrumental*Month)
+summary(m.p2)
+```
+
+```{r}
+t.complete$fit.1 <- fitted(m.t1) #Model predictions or fitted values
+p.complete$fit.1 <- fitted(m.p1) 
+p.complete$fit.2 <- fitted(m.p2)
+```
+
+
+## Model Predictions
+
+```{r}
+ggplot(data = t.complete) +
+  geom_line(aes(x=Instrumental, y = fit.1, col = Month))  +
+  geom_point(aes(x=Instrumental, y = ClimateNA, col = Month), size = 0.5, alpha = 0.3) +
+     labs(x = "Instrumental: Average Monthly Temperature",
+       y = "ClimateNA: Average Monthly Temperature") +
+  theme_classic()
+```
+
+Relevel to plot
+
+```{r}
+p.complete$Month <- factor(p.complete$Month, levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"))
+```
+
+
+
+```{r}
+ggplot(data = p.complete) +
+  geom_line(aes(x=Instrumental, y = fit.1, col = Month))  +
+  geom_point(aes(x=Instrumental, y = ClimateNA, col = Month), size = 0.5, alpha = 0.5) +
+   labs(x = "Instrumental: Monthly Precipitation (mm)",
+       y = "ClimateNA: Monthly Precipitation (mm)") +
+  theme_classic()
+
+
+ggplot(data = p.complete) +
+  geom_line(aes(x=Instrumental, y = fit.2, col = Month))  +
+  geom_point(aes(x=Instrumental, y = ClimateNA, col = Month), size = 0.5, alpha = 0.4) +
+  lims(x = c(0,200), y = c(0,200)) +
+   labs(x = "Instrumental: Monthly Precipitation (mm)",
+       y = "ClimateNA: Monthly Precipitation (mm)") +
+  theme_classic()
+```
+
+
+## Validation
+
+Normality:
+
+```{r}
+plot(m.t1, which=2)
+plot(m.p1, which=2)
+plot(m.p2, which=2)
+```
+
+Equal variance:
+```{r}
+plot(m.t1, which=3)
+plot(m.p1, which=3)
+plot(m.p2, which=3)
+```
+
+Linearity:
+
+```{r}
+plot(m.t1, which=1)
+plot(m.p1, which=1)
+plot(m.p2, which=1)
+```
+
+Leverage:
+```{r}
+plot(m.t1, which=4)
+plot(m.p1, which=4)
+plot(m.p2, which=4)
+```
+
+
+
+
+# Save Outputs
+
+```{r}
+
+```
+
+
+
+# Reproducibility
+```{r}
+Sys.time()
+git2r::repository()
+sessionInfo()
+```
