@@ -10,14 +10,15 @@ output:
     toc_float: yes
 ---
 
+To Do:
 
-- Seasonality
+- Fill missing data
 - Update Pinery Climate (96 - present; Thedford & our data)
 - Growing season T (May - Sept)
 - Vapour pressure defecit (growing season T & previous Aug-Oct, Williams et al.)
 
 
-#### Packages
+# Packages
 ```{r}
 library(ggplot2) #for plotting
 library(tidyr)
@@ -27,7 +28,7 @@ library(gridExtra)
 ```
 
 
-#### Read in Data
+# Read in Data
 
 The Pinery dataset was compiled in excel from monthly mean temperature and total precipitation data using open access Environment Canada records for stations within 30km of the Pinery with at least 10 consecutive years of data (http://climate.weather.gc.ca/historical_data/search_historic_data_e.html). 
 
@@ -44,7 +45,9 @@ london_temp$month <- as.factor(london_temp$month) #Make a factor
 ```
 
 
-### Clean Up Data
+# Create Regional Data
+
+## Clean Data
 
 Here I go through each station for the temp and precip data, removing years where all 12 months aren't present so that I can later calculate the mean values for each year. I did this manually a while ago and there is probably a more efficient way to do it, however it works and it's already done so I left it as is. 
 ```{r}
@@ -164,7 +167,7 @@ Watford_P <- Watford %>% select(-mean_temp) %>% filter(!is.na(Watford$total_prec
 ```
 
 
-### Re-combine Data
+EE Re-combine Data
 ```{r}
 pinery_temp <- rbind(Arkona_T2, CentraliaA_T2, Exeter_T2, Forest_T2, Lucan_T2, Pinery_T2, Strathroy_T2, Watford_T2)
 pinery_precip <- rbind(Arkona_P2, CentraliaA_P2, Exeter_P2, Forest_P2, Lucan_P2, Pinery_P2, Strathroy_P2, Thedford_P2)
@@ -191,7 +194,7 @@ graph <- ggplot(pinery_precip, aes(x = year)) +
 graph
 ```
 
-## Full Dataset
+## Calculate Average (month-year)
 
 Calculate one mean temperature and total precipitation for each year/month where more than one station of data is available
 
@@ -214,8 +217,106 @@ pinery_precip_mean <- pinery_precip %>%
 head(pinery_precip_mean)
 ```
 
+```{r}
+ggplot(pinery_precip_mean, aes(x = year)) +
+  geom_histogram(position = 'identity', binwidth = 1, color = "black", fill = "grey")
 
-### Climograph
+ggplot(pinery_temp_mean, aes(x = year)) +
+  geom_histogram(position = 'identity', binwidth = 1, color = "black", fill = "grey")
+```
+
+
+
+## Fill Empty Years
+
+```{r}
+year <- c(1885:2017) #create time vector
+month <- c(1:12)
+str(time)
+```
+
+Fill empty months-years with data from London
+
+```{r}
+p.t <- pinery_temp_mean %>% select(year, month, mean_temp_year)
+
+l.t <- london_temp %>% filter(month == "Jan" |
+                                month == "Feb" |
+                                month == "Mar" |
+                                month == "Apr" |
+                                month == "May" |
+                                month == "Jun" |
+                                month == "Jul" |
+                                month == "Aug" |
+                                month == "Sep" |
+                                month == "Oct" |
+                                month == "Nov" |
+                                month == "Dec") %>% 
+  mutate(month = recode(month, "Jan"="1", 
+                                     "Feb"="2", 
+                                     "Mar"="3",
+                                     "Apr"="4",
+                                     "May"="5", 
+                                     "Jun"="6", 
+                                     "Jul"="7",
+                                     "Aug"="8",
+                                     "Sep"="9",
+                                     "Oct"="10",
+                                     "Nov"="11",
+                                     "Dec"="12"))
+
+```
+
+
+```{r}
+PL.temp <- full_join(l.t, pinery_temp_month)
+```
+
+```{r}
+ggplot((l.t %>% na.omit), aes(x = year)) +
+  geom_histogram(position = 'identity', binwidth = 1, color = "black", fill = "grey")
+```
+
+
+
+
+Select all rows with regional data - source = Pinery
+
+Select all rows with NA - source = London
+
+```{r}
+PL.1 <- PL.temp %>% 
+  filter(is.na(mean_temp_year))
+PL.1$source <- "London"
+PL.1$temp <- PL.1$mean_temp
+
+PL.2 <- PL.temp %>%
+  na.omit(cols=c("mean_temp_year"))
+PL.2$source <- "Pinery"
+PL.2$temp <- PL.2$mean_temp_year
+
+PL.temp2 <- rbind(PL.1, PL.2) 
+```
+
+Also missing 1940:7
+Create data frame with all months & year to ensure none are missing*
+
+Fill leftover NAs with climateNA values?
+
+```{r}
+PL.temp2 %>% filter(is.na(temp))
+```
+
+
+
+
+
+
+
+
+# Monthly Data
+
+## Climograph
 
 ```{r}
 study_t <- pinery_temp_mean %>% 
@@ -259,15 +360,7 @@ p.climograph
 ```
 
 
-
-
-### Write Climate Record to CSV
-```{r}
-#write.csv(pinery_temp_mean, file = "outputs/temperature.csv")
-#write.csv(pinery_precip_mean, file = "outputs/precipitation.csv")
-```
-
-## Annual Dataset
+# Annual Data
 
 ```{r}
 london_temp_annual <- london_temp %>% filter(month == "Annual")
@@ -363,7 +456,7 @@ annual_plot <- grid.arrange(annual_temp_plot, annual_precip_plot, ncol= 2)
 ```
 
 
-## Seasonal Dataset
+# Seasonal Data
 
 ```{r}
 winter_t <- pinery_temp %>% filter(month == 1 | month == 2 | month == 3)
@@ -457,7 +550,7 @@ london_temp_season$season <- factor(london_temp_season$season, levels = c("winte
 pinery_temp_season$season <- factor(pinery_temp_season$season, levels = c("winter", "spring", "summer", "fall"))
 ```
 
-### Combine London & Pinery Records
+## Combine London & Pinery Records
 
 ```{r}
 pinery_temp_season$location <- "Pinery"
@@ -565,7 +658,7 @@ Pink = London
 Blue = Pinery
 
 
-#### Temperature Anomaly
+## Temperature Anomaly
 
 https://tamino.wordpress.com/2018/07/29/why-use-temperature-anomaly/
 
@@ -668,10 +761,6 @@ fa_anomaly <- ggplot() +
 seasonal_anomaly_plot <- grid.arrange(w_anomaly, sp_anomaly, su_anomaly, fa_anomaly, nrow = 2, ncol = 2)
 ```
 
-
-### Verify Record
-
-Calculate correlation with London Record
 
 
 # Save Outputs
