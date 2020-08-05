@@ -354,7 +354,7 @@ ggplot(PL.temp4, aes(x = year)) +
 ```{r}
 p.p <- pinery_precip_mean %>% select(year, month, total_precip_year)
 
-l.p <- london_precip %>% select(-season) %>% filter(month == "Jan" |
+l.p <- london_precip %>% filter(month == "Jan" |
                                 month == "Feb" |
                                 month == "Mar" |
                                 month == "Apr" |
@@ -433,7 +433,7 @@ head(PL.temp3)
 PL.7 <- PL.precip3 %>%  
   filter(is.na(precip)) %>%
   mutate(precip = climateNA)
-PL.3$source <- "ClimateNA"
+PL.7$source <- "ClimateNA"
 
 PL.8 <- PL.precip3 %>% 
   filter(!is.na(precip))
@@ -910,6 +910,8 @@ seasonal_anomaly_plot <- grid.arrange(w_anomaly, sp_anomaly, su_anomaly, fa_anom
 # Save Outputs
 
 ```{r}
+#write.csv(PL.temp4, "outputs/full_temp.csv")
+#write.csv(PL.precip4, "outputs/full_precip.csv")
 #write.csv(pinery_temp_mean, "outputs/monthly_temperature.csv")
 #write.csv(pinery_precip_mean, "outputs/monthly_precipitation.csv")
 #write.csv(season_temp, file = "outputs/season_temperature.csv")
