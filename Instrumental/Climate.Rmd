@@ -518,28 +518,43 @@ p.climograph
 
 ```{r}
 ggplot(data = PL.temp4, aes(x=year, y = temp)) +
+  geom_line(alpha = 0.6) +
+  facet_grid(month~., scales = "free") + 
+  ylab("Mean Monthly Temperature (°C)") +
+  theme_classic() 
+
+ggplot(data = PL.precip4, aes(x=year, y = precip)) +
+  geom_line(alpha = 0.6) +
+  facet_grid(month~., scales = "free") + 
+  ylab("Total Monthly Precipitation (mm)") +
+  theme_classic() 
+
+```
+
+```{r}
+ggplot(data = PL.temp4, aes(x=year, y = temp)) +
   geom_point(aes(col=source), size=0.3) +
   geom_line(alpha = 0.6) +
-  facet_grid(month~.) + 
+  facet_grid(month~., scales = "free") + 
   ylab("Mean Monthly Temperature (°C)") +
   theme_classic() 
 
 ggplot(data = PL.temp4, aes(x=year, y = temp)) +
   geom_point(aes(col=source), size=0.3) +
-  facet_grid(month~source) + 
+  facet_grid(month~source, scales = "free") + 
   ylab("Mean Monthly Temperature (°C)") +
   theme_classic() 
 
 ggplot(data = PL.precip4, aes(x=year, y = precip)) +
   geom_point(aes(col=source), size=0.3) +
   geom_line(alpha = 0.6) +
-  facet_grid(month~.) + 
+  facet_grid(month~., scales = "free") + 
   ylab("Total Monthly Precipitation (mm)") +
   theme_classic() 
 
 ggplot(data = PL.precip4, aes(x=year, y = precip)) +
   geom_point(aes(col=source), size=0.3) +
-  facet_grid(month~source) + 
+  facet_grid(month~source, scales = "free") + 
   ylab("Total Monthly Precipitation (mm)") +
   theme_classic() 
 ```
