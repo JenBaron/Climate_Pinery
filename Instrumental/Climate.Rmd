@@ -283,6 +283,8 @@ PL.1 <- PL.temp %>%  #use london value where pinery is absent
   mutate(temp = london)
 PL.1$source <- "London"
 
+PL.1
+
 PL.2 <- PL.temp %>% # use pinery value where pinery is present
   filter(!is.na(pinery)) %>%
   mutate(temp = pinery)
@@ -294,6 +296,7 @@ PL.temp2 <- rbind(PL.1, PL.2) %>%
 (nrow(PL.2) + nrow(PL.1)) == nrow(PL.temp) #check equal observations
 
 PL.temp2 %>% filter(is.na(temp))
+
 ```
 
 Fill leftover NAs with climateNA values
@@ -923,18 +926,31 @@ seasonal_anomaly_plot <- grid.arrange(w_anomaly, sp_anomaly, su_anomaly, fa_anom
 ```
 
 
+# Climate Summary
+
+```{r}
+str(PL.clean)
+
+PL.clean %>% group_by(month) %>%
+  summarize(mean_temp = mean(temp), mean_precip = mean(precip))
+
+PL.clean %>% group_by(year) %>% 
+  summarize(total_precip = sum(precip)) %>% 
+  summarize(mean_precip = mean(total_precip))
+```
+
 
 # Save Outputs
 
 ```{r}
-write.csv(PL.clean, "outputs/full_climate.csv")
-write.csv(PL.temp4, "outputs/full_temp.csv")
-write.csv(PL.precip4, "outputs/full_precip.csv")
-write.csv(pinery_temp_mean, "outputs/pinery_monthly_temperature.csv")
-write.csv(pinery_precip_mean, "outputs/pinery_monthly_precipitation.csv")
-write.csv(season_temp, file = "outputs/pinery_season_temperature.csv")
-write.csv(season_precip, file = "outputs/pinery_season_precipitation.csv")
-write.csv(pinery_temp_annual, file = "outputs/pinery_annual_temp.csv")
+#write.csv(PL.clean, "outputs/full_climate.csv")
+#write.csv(PL.temp4, "outputs/full_temp.csv")
+#write.csv(PL.precip4, "outputs/full_precip.csv")
+#write.csv(pinery_temp_mean, "outputs/pinery_monthly_temperature.csv")
+#write.csv(pinery_precip_mean, "outputs/pinery_monthly_precipitation.csv")
+#write.csv(season_temp, file = "outputs/pinery_season_temperature.csv")
+#write.csv(season_precip, file = "outputs/pinery_season_precipitation.csv")
+#write.csv(pinery_temp_annual, file = "outputs/pinery_annual_temp.csv")
 ```
 
 
